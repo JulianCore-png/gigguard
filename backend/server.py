@@ -525,13 +525,16 @@ async def _ensure_stripe_customer(user: dict) -> str:
 
 @api.post("/billing/create-checkout-session", response_model=CheckoutOut)
 async def create_checkout(request: Request, user: dict = Depends(get_current_user)):
-    if not STRIPE_SECRET_KEY:
-        raise HTTPException(500, "Stripe not configured")
-    customer_id = await _ensure_stripe_customer(user)
+    if not STRIPE_SECRET_KEY or STRIPE_SECRET_KEY == "sk_test_emergent":
+        raise HTTPException(
+            503,
+            "Stripe is not configured with a real test key on this deployment. Set STRIPE_SECRET_KEY in /app/backend/.env to your sk_test_... key and restart the backend.",
+        )
     origin = str(request.headers.get("origin") or request.headers.get("referer") or "").rstrip("/")
     if not origin:
         origin = os.environ.get("EXPO_PACKAGER_HOSTNAME", "")
     try:
+        customer_id = await _ensure_stripe_customer(user)
         session = stripe.checkout.Session.create(
             customer=customer_id,
             mode="subscription",
