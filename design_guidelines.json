@@ -1,0 +1,101 @@
+{
+  "theme": "dark",
+  "archetype": "2 (Performance Pro) / 7 (Electric & Neon) Hybrid",
+  "design_philosophy": {
+    "goal": "Maximize tax deductions with minimal effort, feeling like 'Financial Growth'.",
+    "emotion": "Effortless, premium, rewarding, and high-energy.",
+    "core_principles": [
+      "One-tap interactions for high-speed usability.",
+      "High-contrast elements for visibility in a car or outdoor setting.",
+      "Glassmorphism on top of deep charcoal to feel modern and premium.",
+      "Emerald green used strategically to represent earning money and driving action."
+    ]
+  },
+  "colors": {
+    "background": {
+      "default": "#0A0E11",
+      "surface": "#1A1F25"
+    },
+    "primary": {
+      "DEFAULT": "#00D87A",
+      "glow": "rgba(0, 216, 122, 0.6)"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A0AAB2",
+      "accent": "#00D87A"
+    },
+    "border": "rgba(255, 255, 255, 0.1)"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Cabinet Grotesk, sans-serif",
+      "body": "Manrope, sans-serif"
+    },
+    "scales": {
+      "h1": "text-4xl tracking-tight font-bold",
+      "h2": "text-3xl tracking-tight font-bold",
+      "h3": "text-xl tracking-tight font-semibold",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm text-secondary"
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Generous Spacing, Mobile-first, Full viewport height usage.",
+    "container_padding": "p-4 md:p-6",
+    "cards_gap": "gap-4",
+    "sections_gap": "gap-8"
+  },
+  "components": {
+    "action_button": {
+      "classes": "fixed bottom-8 left-1/2 transform -translate-x-1/2 w-[90%] max-w-sm rounded-full bg-[#00D87A] text-black font-bold text-xl py-5 shadow-[0_0_30px_rgba(0,216,122,0.6)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50",
+      "data_testid": "action-button-toggle-shift"
+    },
+    "glass_card": {
+      "classes": "bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-lg",
+      "data_testid_prefix": "glass-card-"
+    },
+    "input": {
+      "classes": "bg-[#1A1F25] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#00D87A] focus:ring-1 focus:ring-[#00D87A] transition-all"
+    }
+  },
+  "images": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1711025372958-db48a4fe0ba1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwyfHxncmVlbiUyMGdsb3dpbmclMjBhYnN0cmFjdCUyMGRhcmt8ZW58MHx8fHwxNzc5MzE4MDE5fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract glowing green background for premium feel"
+    },
+    "dashboard_city_night": {
+      "url": "https://images.unsplash.com/photo-1606096671846-669325f1e0f9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwzfHxuaWdodCUyMGNpdHklMjBkcml2aW5nJTIwZGFzaGJvYXJkfGVufDB8fHx8MTc3OTMxODAxOXww&ixlib=rb-4.1.0&q=85",
+      "description": "Driving night dashboard, great for 'Start Shift' visual context."
+    },
+    "receipt_scan": {
+      "url": "https://images.pexels.com/photos/14647295/pexels-photo-14647295.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Close up of a receipt for the Rapid-Snap feature"
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "usage": "Use consistently for nav icons, back buttons, and feature indicators (like camera, list, chart)."
+  },
+  "screens": {
+    "home_dashboard": {
+      "layout": "Full screen dark background. Top section has user greeting and quick stats. Middle section has abstract green glow or night city visual. Bottom has the massive glowing Action Button.",
+      "key_elements": ["Earnings summary", "Glowing Start/End button", "Live mileage text"]
+    },
+    "trip_history": {
+      "layout": "List view using glass_card style for each trip.",
+      "key_elements": ["Date", "Miles", "$ Saved"]
+    },
+    "receipt_camera": {
+      "layout": "Full viewport camera UI mockup, bottom actions for capture.",
+      "key_elements": ["Camera viewfinder area", "Capture button", "OCR scanning animation"]
+    },
+    "export_tax": {
+      "layout": "Centered form with large CTA.",
+      "key_elements": ["Select month/year", "Generate PDF button"]
+    }
+  },
+  "testing": {
+    "rules": "All interactive and key informational elements MUST include a data-testid attribute to facilitate robust automated testing."
+  }
+}
