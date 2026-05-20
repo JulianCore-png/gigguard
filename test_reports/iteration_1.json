@@ -1,0 +1,54 @@
+{
+  "summary": "Backend-only regression for Gig-Guard. 23/24 tests passed (95.8%). All auth, trips (incl. haversine miles, auto-abandon, manual-miles override, free-tier 402 gating at 10 trips/month), receipts (manual + OCR image returns 200), stats shape, CSV export (402 free / valid CSV with TOTAL row for Pro), subscription/status and subscription/refresh all behave per spec. Mongo _id is never leaked in any response body. The single failure is Stripe checkout session creation: Stripe rejects the configured key 'sk_test_emergent' as invalid (AuthenticationError) so /api/billing/create-checkout-session returns 500.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/billing/create-checkout-session",
+        "issue": "Returns 500. Stripe responds with AuthenticationError: 'Invalid API Key provided: sk_test_****gent'. The STRIPE_SECRET_KEY in /app/backend/.env is the literal placeholder 'sk_test_emergent', which is not accepted by the real Stripe API. A real sk_test_... key is required for checkout session creation to succeed. Additionally, the route should map Stripe AuthenticationError to a clearer 4xx/5xx error message rather than a generic 500.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "passlib/bcrypt",
+        "issue": "Backend logs show 'AttributeError: module bcrypt has no attribute __about__' from passlib at startup (trapped warning). Auth still works but bcrypt/passlib versions are mismatched; consider pinning bcrypt<4 or upgrading passlib."
+      },
+      {
+        "endpoint": "POST /api/stripe/webhook",
+        "issue": "When STRIPE_WEBHOOK_SECRET is empty, endpoint trusts raw JSON (dev-only). Acceptable for preview but should be flagged before production."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_gigguard_backend.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Replace STRIPE_SECRET_KEY=sk_test_emergent in /app/backend/.env with a real Stripe test secret (sk_test_...) so /api/billing/create-checkout-session can succeed; rerun this test to confirm checkout_url is a stripe.com URL.",
+    "Optional: wrap stripe.Customer.create / stripe.checkout.Session.create in a single try/except that surfaces stripe.error.AuthenticationError as HTTP 500 with a clearer 'Stripe API key invalid' message instead of an opaque Internal Server Error.",
+    "Optional: pin bcrypt to a compatible version to silence the passlib '__about__' warning."
+  ],
+  "critical_code_review_comments": [
+    "server.py is a single 640-line module; acceptable for MVP but consider splitting auth/trips/receipts/stripe into routers before adding features.",
+    "_ensure_stripe_customer is called before try/except in create_checkout, so any Stripe error from Customer.create surfaces as a generic 500 (this is the cause of the observed failure). Move customer creation inside the try block.",
+    "Free-tier gating counts all trips started this month (including abandoned/active), which matches the requested behavior — verified by the 402 test.",
+    "trip_public uses round(miles*0.67, 2) on every read, so miles are stored unrounded but always presented rounded — consistent.",
+    "receipts endpoint correctly auto-fills missing fields from OCR and tolerates empty OCR result; image_base64 is only persisted for Pro users (good privacy default)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_gigguard_backend.py (new)",
+    "/app/test_reports/pytest/pytest_results.xml (generated)"
+  ],
+  "success_rate": {"backend": "95.8%", "frontend": "n/a (not requested)"},
+  "seed_data_creation": "Created two ephemeral test users (tester+<uniq>@example.com and freelimit+<uniq>@example.com). The free-tier user and its 10 trip docs were cleaned up at test end. The primary test user remains in the gigguard.users collection and was briefly flipped to is_pro=true to validate CSV export, then reverted to is_pro=false.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: pytest /app/backend/tests/test_gigguard_backend.py -v. Only failing test is test_create_checkout_session; root cause is invalid Stripe API key in backend/.env (literal 'sk_test_emergent'). All other 23 endpoints verified end-to-end against EXPO_PUBLIC_BACKEND_URL. OCR test sends a real JPEG generated via PIL (gradient + text shapes) and asserts only HTTP 200 + 'id' present (per PRD note: empty OCR result acceptable).",
+  "rca_of_issue": "RCA for /api/billing/create-checkout-session 500: stripe.api_key is set from STRIPE_SECRET_KEY env var which equals 'sk_test_emergent' (placeholder, not a real Stripe key). First Stripe call -> stripe.Customer.create(...) raises stripe.error.AuthenticationError('Invalid API Key provided: sk_test_****gent'). Because _ensure_stripe_customer is invoked before the try/except in create_checkout, the exception propagates as a FastAPI 500. Reproduction: POST /api/billing/create-checkout-session with a valid JWT -> 500. Mitigation: (1) set a valid sk_test_... key in /app/backend/.env and restart backend; (2) move customer creation inside the existing try/except to convert StripeError into a meaningful HTTPException."
+}
