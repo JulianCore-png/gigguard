@@ -19,7 +19,10 @@ export default function ProScreen() {
     setBusy(true);
     try {
       const r = (await api.post("/billing/create-checkout-session", {
-        return_url_base: process.env.EXPO_PUBLIC_BACKEND_URL,
+        return_url_base:
+          Platform.OS === "web" && typeof window !== "undefined"
+            ? window.location.origin
+            : process.env.EXPO_PUBLIC_BACKEND_URL,
       })) as { checkout_url: string };
       if (Platform.OS === "web") {
         if (typeof window !== "undefined") window.location.href = r.checkout_url;

@@ -444,7 +444,8 @@ async def stats(user: dict = Depends(get_current_user)):
 
     async def sum_for(since: str) -> dict:
         cur = db.trips.find(
-            {"user_id": user["id"], "started_at": {"$gte": since}, "status": "completed"}
+            {"user_id": user["id"], "started_at": {"$gte": since}, "status": "completed"},
+            {"miles": 1, "_id": 0},
         )
         miles = 0.0
         count = 0
@@ -454,7 +455,10 @@ async def stats(user: dict = Depends(get_current_user)):
         return {"miles": round(miles, 2), "trips": count, "deduction": round(miles * IRS_RATE_PER_MILE, 2)}
 
     receipt_total = 0.0
-    async for r in db.receipts.find({"user_id": user["id"], "date": {"$gte": now.strftime("%Y-01-01")}}):
+    async for r in db.receipts.find(
+        {"user_id": user["id"], "date": {"$gte": now.strftime("%Y-01-01")}},
+        {"amount": 1, "_id": 0},
+    ):
         if r.get("amount") is not None:
             try:
                 receipt_total += float(r["amount"])
