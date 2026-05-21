@@ -18,7 +18,9 @@ export default function ProScreen() {
   const upgrade = async () => {
     setBusy(true);
     try {
-      const r = (await api.post("/billing/create-checkout-session")) as { checkout_url: string };
+      const r = (await api.post("/billing/create-checkout-session", {
+        return_url_base: process.env.EXPO_PUBLIC_BACKEND_URL,
+      })) as { checkout_url: string };
       if (Platform.OS === "web") {
         if (typeof window !== "undefined") window.location.href = r.checkout_url;
       } else {

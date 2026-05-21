@@ -163,6 +163,10 @@ class CheckoutOut(BaseModel):
     session_id: str
 
 
+class CheckoutIn(BaseModel):
+    return_url_base: Optional[str] = None
+
+
 # ---------- Helpers ----------
 def haversine_miles(p1: dict, p2: dict) -> float:
     lat1, lon1 = radians(p1["lat"]), radians(p1["lng"])
@@ -524,15 +528,33 @@ async def _ensure_stripe_customer(user: dict) -> str:
 
 
 @api.post("/billing/create-checkout-session", response_model=CheckoutOut)
-async def create_checkout(request: Request, user: dict = Depends(get_current_user)):
+async def create_checkout(request: Request, body: Optional[CheckoutIn] = None, user: dict = Depends(get_current_user)):
     if not STRIPE_SECRET_KEY or STRIPE_SECRET_KEY == "sk_test_emergent":
         raise HTTPException(
             503,
             "Stripe is not configured with a real test key on this deployment. Set STRIPE_SECRET_KEY in /app/backend/.env to your sk_test_... key and restart the backend.",
         )
-    origin = str(request.headers.get("origin") or request.headers.get("referer") or "").rstrip("/")
+    # Resolve a valid https:// origin for success/cancel URLs (Stripe rejects relative URLs).
+    candidates = [
+        body.return_url_base if body and body.return_url_base else None,
+        request.headers.get("origin"),
+        request.headers.get("referer"),
+        os.environ.get("APP_PUBLIC_URL"),
+        os.environ.get("EXPO_PACKAGER_HOSTNAME"),
+    ]
+    origin = ""
+    for c in candidates:
+        if not c:
+            continue
+        c = str(c).rstrip("/")
+        if c.startswith("http://") or c.startswith("https://"):
+            origin = c
+            break
+        if c and "." in c:
+            origin = f"https://{c}"
+            break
     if not origin:
-        origin = os.environ.get("EXPO_PACKAGER_HOSTNAME", "")
+        raise HTTPException(500, "Could not determine app public URL for Stripe return URLs. Set APP_PUBLIC_URL in /app/backend/.env.")
     try:
         customer_id = await _ensure_stripe_customer(user)
         session = stripe.checkout.Session.create(
