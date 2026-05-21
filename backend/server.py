@@ -422,7 +422,9 @@ async def create_receipt(body: ReceiptIn, user: dict = Depends(get_current_user)
 
 @api.get("/receipts")
 async def list_receipts(user: dict = Depends(get_current_user)):
-    rows = await db.receipts.find({"user_id": user["id"]}).sort("created_at", -1).to_list(500)
+    rows = await db.receipts.find(
+        {"user_id": user["id"]}, {"_id": 0, "image_base64": 0}
+    ).sort("created_at", -1).to_list(500)
     return [receipt_public(r) for r in rows]
 
 
