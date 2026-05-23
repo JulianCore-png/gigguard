@@ -25,6 +25,9 @@ export default function RootLayout() {
           <Stack.Screen name="pro" options={{ title: "Upgrade to Pro", presentation: "modal" }} />
           <Stack.Screen name="export" options={{ title: "Tax-Ready Export" }} />
           <Stack.Screen name="billing-return" options={{ title: "Subscription" }} />
+          <Stack.Screen name="privacy-center" options={{ title: "Privacy & Data" }} />
+          <Stack.Screen name="terms" options={{ title: "Terms of Service" }} />
+          <Stack.Screen name="privacy" options={{ title: "Privacy Policy" }} />
         </Stack>
       </AuthProvider>
     </SafeAreaProvider>

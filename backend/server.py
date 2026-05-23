@@ -304,6 +304,52 @@ async def me(user: dict = Depends(get_current_user)):
     return user_public(user)
 
 
+@api.get("/auth/me/export")
+async def export_user_data(user: dict = Depends(get_current_user)):
+    """Right-to-access: return everything we store about the user as JSON."""
+    user_doc = await db.users.find_one({"id": user["id"]}, {"_id": 0, "hashed_password": 0})
+    trips = await db.trips.find({"user_id": user["id"]}, {"_id": 0}).to_list(10000)
+    receipts = await db.receipts.find({"user_id": user["id"]}, {"_id": 0}).to_list(10000)
+    return {
+        "exported_at": now_iso(),
+        "account": user_doc,
+        "trips": trips,
+        "receipts": receipts,
+    }
+
+
+@api.delete("/auth/me")
+async def delete_account(user: dict = Depends(get_current_user)):
+    """Apple App Store Guideline 5.1.1(v): in-app account deletion.
+
+    Cancels Stripe subscription, deletes all user data (trips, receipts) and the user record.
+    """
+    cancel_status: Optional[str] = None
+    sub_id = user.get("stripe_subscription_id")
+    if sub_id and STRIPE_SECRET_KEY and STRIPE_SECRET_KEY != "sk_test_emergent":
+        try:
+            stripe.Subscription.delete(sub_id)
+            cancel_status = "canceled"
+        except stripe.error.StripeError as e:
+            logger.warning("Stripe cancel on delete failed: %s", e)
+            cancel_status = "failed"
+    customer_id = user.get("stripe_customer_id")
+    if customer_id and STRIPE_SECRET_KEY and STRIPE_SECRET_KEY != "sk_test_emergent":
+        try:
+            stripe.Customer.delete(customer_id)
+        except stripe.error.StripeError as e:
+            logger.warning("Stripe customer delete failed: %s", e)
+    trips_del = await db.trips.delete_many({"user_id": user["id"]})
+    receipts_del = await db.receipts.delete_many({"user_id": user["id"]})
+    await db.users.delete_one({"id": user["id"]})
+    return {
+        "deleted": True,
+        "trips_deleted": trips_del.deleted_count,
+        "receipts_deleted": receipts_del.deleted_count,
+        "stripe_subscription": cancel_status,
+    }
+
+
 # ---------- Trips ----------
 @api.post("/trips/start")
 async def trip_start(body: StartTripIn, user: dict = Depends(get_current_user)):

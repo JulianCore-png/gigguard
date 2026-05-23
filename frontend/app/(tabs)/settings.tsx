@@ -76,6 +76,18 @@ export default function SettingsTab() {
             </GlassCard>
           </Pressable>
 
+          <Pressable testID="settings-privacy-button" onPress={() => router.push("/privacy-center")}>
+            <GlassCard style={{ marginTop: spacing(2) }}>
+              <View style={styles.rowBetween}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.h3}>Privacy & my data</Text>
+                  <Text style={styles.sub}>Download your data or permanently delete your account.</Text>
+                </View>
+                <Ionicons name="shield-checkmark" size={22} color={colors.primary} />
+              </View>
+            </GlassCard>
+          </Pressable>
+
           <Pressable testID="settings-logout-button" onPress={logout}>
             <GlassCard style={{ marginTop: spacing(2) }}>
               <View style={styles.rowBetween}>

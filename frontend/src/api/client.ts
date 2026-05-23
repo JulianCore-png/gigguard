@@ -54,4 +54,8 @@ export const api = {
       }),
     );
   },
+  async delete(path: string) {
+    const headers = { ...(await tokenHeader()) };
+    return handle(await fetch(`${BASE}/api${path}`, { method: "DELETE", headers }));
+  },
 };

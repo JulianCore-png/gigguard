@@ -92,6 +92,17 @@ export default function RegisterScreen() {
               <Pressable testID="goto-login-button" onPress={() => router.replace("/login")} style={styles.ghostBtn}>
                 <Text style={styles.ghostText}>Already have an account? Sign in</Text>
               </Pressable>
+              <Text style={styles.consent}>
+                By creating an account you agree to our{" "}
+                <Text testID="register-terms-link" style={styles.consentLink} onPress={() => router.push("/terms")}>
+                  Terms of Service
+                </Text>{" "}
+                and{" "}
+                <Text testID="register-privacy-link" style={styles.consentLink} onPress={() => router.push("/privacy")}>
+                  Privacy Policy
+                </Text>
+                .
+              </Text>
             </GlassCard>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -130,4 +141,12 @@ const styles = StyleSheet.create({
   primaryBtnText: { ...font.h3, color: "#04130A", letterSpacing: 0.4, textTransform: "uppercase" },
   ghostBtn: { alignItems: "center", marginTop: spacing(2) },
   ghostText: { color: colors.primary, ...font.body },
+  consent: {
+    color: colors.textMute,
+    ...font.small,
+    textAlign: "center",
+    marginTop: spacing(2),
+    lineHeight: 18,
+  },
+  consentLink: { color: colors.primary, textDecorationLine: "underline" },
 });
