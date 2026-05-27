@@ -100,6 +100,9 @@ export default function LoginScreen() {
               <Pressable testID="goto-register-button" onPress={() => router.push("/register")} style={styles.ghostBtn}>
                 <Text style={styles.ghostText}>New here? Create an account</Text>
               </Pressable>
+              <Pressable testID="goto-delete-button" onPress={() => router.push("/delete-account")} style={styles.ghostBtn}>
+                <Text style={styles.mutedLink}>Can't sign in? Request account deletion</Text>
+              </Pressable>
             </GlassCard>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -153,4 +156,5 @@ const styles = StyleSheet.create({
   primaryBtnText: { ...font.h3, color: "#04130A", letterSpacing: 0.4, textTransform: "uppercase" },
   ghostBtn: { alignItems: "center", marginTop: spacing(2) },
   ghostText: { color: colors.primary, ...font.body },
+  mutedLink: { color: colors.textMute, ...font.small, textDecorationLine: "underline" },
 });

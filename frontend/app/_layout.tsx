@@ -28,6 +28,7 @@ export default function RootLayout() {
           <Stack.Screen name="privacy-center" options={{ title: "Privacy & Data" }} />
           <Stack.Screen name="terms" options={{ title: "Terms of Service" }} />
           <Stack.Screen name="privacy" options={{ title: "Privacy Policy" }} />
+          <Stack.Screen name="delete-account" options={{ title: "Delete Account", headerShown: true }} />
         </Stack>
       </AuthProvider>
     </SafeAreaProvider>

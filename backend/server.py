@@ -708,6 +708,64 @@ async def sub_refresh(user: dict = Depends(get_current_user)):
         raise HTTPException(500, f"Stripe error: {e}")
 
 
+@api.post("/billing/portal")
+async def billing_portal(request: Request, body: Optional[CheckoutIn] = None, user: dict = Depends(get_current_user)):
+    """Self-service subscription management via Stripe Customer Portal.
+
+    Required by both Apple and Google so users can cancel/update their subscription
+    without contacting support. Returns a one-time URL.
+    """
+    if not STRIPE_SECRET_KEY or STRIPE_SECRET_KEY == "sk_test_emergent":
+        raise HTTPException(503, "Stripe is not configured")
+    if not user.get("stripe_customer_id"):
+        raise HTTPException(400, "No Stripe customer on file. Upgrade to Pro first.")
+    return_url = (
+        (body.return_url_base if body and body.return_url_base else None)
+        or request.headers.get("origin")
+        or os.environ.get("APP_PUBLIC_URL")
+        or ""
+    ).rstrip("/")
+    if return_url and not (return_url.startswith("http://") or return_url.startswith("https://")):
+        return_url = f"https://{return_url}"
+    try:
+        session = stripe.billing_portal.Session.create(
+            customer=user["stripe_customer_id"],
+            return_url=f"{return_url}/billing-return?status=portal" if return_url else None,
+        )
+        return {"portal_url": session.url}
+    except stripe.error.StripeError as e:
+        raise HTTPException(500, f"Stripe error: {e.user_message or str(e)}")
+
+
+# ---------- Account deletion request (UNAUTHENTICATED, for Google Play / GDPR) ----------
+class DeletionRequestIn(BaseModel):
+    email: EmailStr
+    reason: Optional[str] = None
+
+
+@api.post("/legal/deletion-request")
+async def deletion_request(body: DeletionRequestIn):
+    """Public endpoint: users who cannot sign in can request account deletion by email.
+
+    Required by Google Play Console policy (May 31, 2024) — a web-accessible deletion
+    request channel that doesn't require login. We simply log the request; manual review
+    by the operator (Julian Davis) follows. Always returns 200 to avoid email enumeration.
+    """
+    await db.deletion_requests.insert_one(
+        {
+            "email": str(body.email).lower().strip(),
+            "reason": (body.reason or "")[:1000],
+            "requested_at": now_iso(),
+            "status": "pending",
+        }
+    )
+    logger.info("Account deletion requested for %s", body.email)
+    return {
+        "ok": True,
+        "message": "We've received your request. Julian Davis will review and process it within 30 days at julian.davis29@outlook.com.",
+    }
+
+
 # ---------- Health ----------
 @api.get("/")
 async def root():

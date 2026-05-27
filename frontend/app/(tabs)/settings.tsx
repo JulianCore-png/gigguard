@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -42,6 +42,39 @@ export default function SettingsTab() {
                     <Text style={styles.sub}>Unlimited trips, receipt cloud storage, one-tap tax export.</Text>
                   </View>
                   <Ionicons name="sparkles" size={28} color={colors.primary} />
+                </View>
+              </GlassCard>
+            </Pressable>
+          )}
+
+          {user?.is_pro && (
+            <Pressable testID="settings-manage-sub-button" onPress={async () => {
+              try {
+                const { api } = await import("@/src/api/client");
+                const r = (await api.post("/billing/portal", {
+                  return_url_base:
+                    Platform.OS === "web" && typeof window !== "undefined"
+                      ? window.location.origin
+                      : process.env.EXPO_PUBLIC_BACKEND_URL,
+                })) as { portal_url: string };
+                if (Platform.OS === "web" && typeof window !== "undefined") {
+                  window.location.href = r.portal_url;
+                } else {
+                  const WB = await import("expo-web-browser");
+                  await WB.openBrowserAsync(r.portal_url);
+                  await refresh();
+                }
+              } catch (e: any) {
+                // surfaced by inner alert in api client; no-op here
+              }
+            }}>
+              <GlassCard style={{ marginTop: spacing(2) }}>
+                <View style={styles.rowBetween}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.h3}>Manage subscription</Text>
+                    <Text style={styles.sub}>Update card, change plan, or cancel via Stripe.</Text>
+                  </View>
+                  <Ionicons name="card" size={22} color={colors.primary} />
                 </View>
               </GlassCard>
             </Pressable>

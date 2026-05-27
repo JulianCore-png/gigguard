@@ -81,7 +81,10 @@ export default function ProScreen() {
             )}
           </Pressable>
 
-          <Text style={styles.fine}>Secure test-mode Stripe checkout · cancel anytime · 14-day money-back guarantee</Text>
+          <Text style={styles.fine}>
+            Auto-renews monthly at $4.99 USD until cancelled. Manage or cancel any time from Account → Manage subscription, or directly in your Stripe receipt email. Cancellation takes effect at the end of the current billing period. Payment is charged to your card via Stripe; this app does not use Apple In-App Purchase or Google Play Billing.
+          </Text>
+          <Text style={styles.fine}>14-day money-back guarantee · Test mode: card 4242 4242 4242 4242 works.</Text>
         </ScrollView>
       </SafeAreaView>
     </Background>
